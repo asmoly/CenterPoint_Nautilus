@@ -1,7 +1,7 @@
-CLASS_NAMES: ['Car', 'Bus', 'Truck', 'Pedestrian', 'Cyclist']
+CLASS_NAMES: ['Vehicle', 'Pedestrian', 'Cyclist']
 
 DATA_CONFIG:
-    _BASE_CONFIG_: cfgs/dataset_configs/once_dataset.yaml
+    _BASE_CONFIG_: cfgs/dataset_configs/custom_dataset.yaml
 
 MODEL:
     NAME: CenterPoint
@@ -30,7 +30,7 @@ MODEL:
         CLASS_AGNOSTIC: False
 
         CLASS_NAMES_EACH_HEAD: [
-            ['Car', 'Bus', 'Truck', 'Pedestrian', 'Cyclist']
+            ['Vehicle', 'Pedestrian', 'Cyclist']
         ]
 
         SHARED_CONV_CHANNEL: 64
@@ -76,7 +76,7 @@ MODEL:
 
       OUTPUT_RAW_SCORE: False
 
-      EVAL_METRIC: once
+      EVAL_METRIC: kitti
 
 OPTIMIZATION:
     BATCH_SIZE_PER_GPU: 4
