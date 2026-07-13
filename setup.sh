@@ -7,6 +7,8 @@ conda install -c conda-forge libxcrypt -y
 conda install -c conda-forge gcc_linux-64=11 gxx_linux-64=11 -y
 conda install -c "nvidia/label/cuda-11.6.2" cuda-toolkit -y
 
+pip install open3d
+
 export LD_LIBRARY_PATH=$CONDA_PREFIX/lib/python3.8/site-packages/torch/lib:$CONDA_PREFIX/lib:$CONDA_PREFIX/lib64:$LD_LIBRARY_PATH
 
 export CC=$CONDA_PREFIX/bin/x86_64-conda-linux-gnu-gcc
