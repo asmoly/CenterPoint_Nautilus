@@ -3,6 +3,7 @@ conda tos accept
 conda create -n centerpoint python=3.8 -y
 conda activate centerpoint
 
+conda install -c conda-forge libxcrypt -y
 conda install -c conda-forge gcc_linux-64=11 gxx_linux-64=11 -y
 conda install -c "nvidia/label/cuda-11.6.2" cuda-toolkit -y
 
