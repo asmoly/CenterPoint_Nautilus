@@ -3,11 +3,17 @@ conda tos accept
 conda create -n centerpoint python=3.8 -y
 conda activate centerpoint
 
+conda install -c conda-forge gcc_linux-64=11 gxx_linux-64=11 -y
 conda install -c "nvidia/label/cuda-11.6.2" cuda-toolkit -y
+
+export CC=$CONDA_PREFIX/bin/x86_64-conda-linux-gnu-gcc
+export CXX=$CONDA_PREFIX/bin/x86_64-conda-linux-gnu-g++
 
 export CUDA_HOME=$CONDA_PREFIX
 export PATH=$CUDA_HOME/bin:$PATH
 export LD_LIBRARY_PATH=$CUDA_HOME/lib:$CUDA_HOME/lib64:$LD_LIBRARY_PATH
+
+$CXX --version
 
 which nvcc
 nvcc --version
