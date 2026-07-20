@@ -51,8 +51,8 @@ def main():
     for folder in ["ImageSets", "points", "labels"]:
         (ROOT / folder).mkdir(parents=True, exist_ok=True)
 
-    train_ids = [f"{i:06d}" for i in range(20)] # Creates list of 20 indexes to point clouds and labels: 000000, 000001, 000002, etc ...
-    val_ids = [f"{1000 + i:06d}" for i in range(5)] # Same thing but starts from 1000
+    train_ids = [f"{i:06d}" for i in range(2000)] # Creates list of 20 indexes to point clouds and labels: 000000, 000001, 000002, etc ...
+    val_ids = [f"{3000 + i:06d}" for i in range(200)] # Same thing but starts from 1000
 
     # Writes those ids to the ImageSets files, this is used for the training loop to  determine which point clouds and labels to pull
     (ROOT / "ImageSets" / "train.txt").write_text("\n".join(train_ids) + "\n")
