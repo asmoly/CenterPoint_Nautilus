@@ -66,6 +66,7 @@ def parse_config():
 
 
 def main():
+    # Gets arguments and loads teh config file
     args, cfg = parse_config()
     if args.launcher == 'none':
         dist_train = False
@@ -90,11 +91,13 @@ def main():
     if args.fix_random_seed:
         common_utils.set_random_seed(666 + cfg.LOCAL_RANK)
 
+    # Sets all of the directories to write too and creates them if they don't exist
     output_dir = cfg.ROOT_DIR / 'output' / cfg.EXP_GROUP_PATH / cfg.TAG / args.extra_tag
     ckpt_dir = output_dir / 'ckpt'
     output_dir.mkdir(parents=True, exist_ok=True)
     ckpt_dir.mkdir(parents=True, exist_ok=True)
 
+    # Gets the log file path and creates the actual logger
     log_file = output_dir / ('train_%s.log' % datetime.datetime.now().strftime('%Y%m%d-%H%M%S'))
     logger = common_utils.create_logger(log_file, rank=cfg.LOCAL_RANK)
 
