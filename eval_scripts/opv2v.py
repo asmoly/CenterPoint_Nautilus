@@ -2,15 +2,19 @@ import glob
 import os
 import numpy as np
 import yaml
-from opencood.data_utils import SUPER_CLASS_MAP
-from opencood.utils.transformation_utils import x_to_world
-from opencood.utils.transformation_utils import x1_to_x2
+from opencood.utils.transformation_utils import x1_to_x2    
+
+SUPER_CLASS_MAP = {
+    "vehicle": ["car", "vehicle", "sedan", "suv", "van"],
+    "pedestrian": ["pedestrian", "person"],
+    "truck": ["truck", "pickup", "bus"],
+}
 
 #flip class map around so raw name --> super class
 CLASS_OF = {}
 for super_name, raw_names in SUPER_CLASS_MAP.items():
     for raw_name in raw_names:
-        CLASS_OF[raw_name] = super_name
+        CLASS_OF[raw_name.lower()] = super_name
 
 #defined in starting kit config.json, objects ouyside the range don't get scored
 POINT_CLOUD_RANGE = (-40.0, -40.0, -8.0, 40.0, 40.0, 2.0)
@@ -55,7 +59,7 @@ def load_frame(bin_path):
     unmapped = []
 
     for obj in (meta.get("vehicles")).values():
-        name = CLASS_OF.get(obj["obj_type"])
+        name = CLASS_OF.get(str(obj["obj_type"]).lower())   
         if name is None:
             unmapped.append(obj["obj_type"])
             continue
