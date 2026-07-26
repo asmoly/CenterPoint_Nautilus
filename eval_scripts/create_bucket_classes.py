@@ -36,6 +36,14 @@ def parse_args():
     )
     return parser.parse_args()
 
+def count_valid_frames(dataset_root):
+    dataset_root = Path(dataset_root)
+    total = 0
+    for path in dataset_root.glob("*/*/*.bin"):
+        if path.with_suffix(".yaml").exists():
+            total += 1
+
+    return total
 
 def main():
     args = parse_args()
@@ -46,13 +54,15 @@ def main():
     rows = []
     n_frames = 0
 
+    total_frames = count_valid_frames(dataset_root)
+
     # This loops through every single frame (.bin) file with a mathcing .yaml file in the dataset
     for frame in opv2v.iter_frames(str(dataset_root)):
         rows.extend(classify.object_counts(frame))
         n_frames += 1
 
         if n_frames % 50 == 0:
-            print(f"Classified {n_frames} frames")
+            print(f"Classified {n_frames} frames | Progress: {n_frames/total_frames}")
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with output_path.open("w", newline="") as f:
