@@ -49,6 +49,10 @@ def main():
     # This loops through every single frame (.bin) file with a mathcing .yaml file in the dataset
     for frame in opv2v.iter_frames(str(dataset_root)):
         rows.extend(classify.object_counts(frame))
+        n_frames += 1
+
+        if n_frames % 50 == 0:
+            print(f"Classified {n_frames} frames")
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with output_path.open("w", newline="") as f:
