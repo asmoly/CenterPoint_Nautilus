@@ -62,7 +62,7 @@ def main():
         n_frames += 1
 
         if n_frames % 50 == 0:
-            print(f"Classified {n_frames} frames | Progress: {n_frames/total_frames}")
+            print(f"Classified {n_frames} frames | Progress: {((n_frames/total_frames)*100):2f}%")
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with output_path.open("w", newline="") as f:
