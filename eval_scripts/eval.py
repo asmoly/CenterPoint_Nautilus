@@ -53,9 +53,9 @@ def main():
 
     test_frame = dataset.__getitem__(5)
     print(test_frame["frame_id"])
-    print(test_frame["points"].shape())
-    print(test_frame["gt_boxes"].shape())
-    print(test_frame["gt_names"].shape())
+    print(test_frame["points"].shape)
+    print(test_frame["gt_boxes"].shape)
+    print(test_frame["gt_names"].shape)
 
 if __name__ == "__main__":
     main()
