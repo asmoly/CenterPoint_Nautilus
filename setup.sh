@@ -30,5 +30,5 @@ python -c "import pcdet.ops.iou3d_nms.iou3d_nms_cuda as iou3d; print('iou3d ok')
 git clone https://github.com/DerrickXuNu/OpenCOOD.git
 cd OpenCOOD
 pip install -r requirements.txt
-python setup.py develop
+python setup_pcdet.py develop
 cd ..
