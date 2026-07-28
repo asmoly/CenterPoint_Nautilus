@@ -36,7 +36,7 @@ MODEL:
         SHARED_CONV_CHANNEL: 64
         USE_BIAS_BEFORE_NORM: True  # TODO
         NUM_HM_CONV: 2  # TODO
-        SEPARATE_HEAD_CFG:
+        SEPARATE_HEAD_CFG: 
             HEAD_ORDER: ['center', 'center_z', 'dim', 'rot']
             HEAD_DICT: {
                 'center': {'out_channels': 2, 'num_conv': 2},

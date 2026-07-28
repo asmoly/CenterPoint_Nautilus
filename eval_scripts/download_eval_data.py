@@ -1,3 +1,8 @@
+"""
+This script downloads the v2x validation data, specifically the v2x_real_lidar64_val data
+It downloads it from this site: https://mobility-lab.seas.ucla.edu/v2x-real/
+"""
+
 import zipfile
 import requests
 from pathlib import Path
