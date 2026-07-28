@@ -62,7 +62,7 @@ class OPV2VDataset(DatasetTemplate):
 
 
 def main():
-    dataset = OPV2VDataset("centerpoint_custom.yaml")
+    dataset = OPV2VDataset("centerpoint_custom_opv2v.yaml")
     test_frame = dataset.__getitem__(5)
     print(test_frame)
 
