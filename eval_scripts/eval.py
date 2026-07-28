@@ -1,9 +1,12 @@
 from pathlib import Path
 
 import numpy as np
-
+import torch
 from pcdet.datasets.dataset import DatasetTemplate
 from pcdet.config import cfg, cfg_from_yaml_file
+from pcdet.models import build_network, load_data_to_gpu
+from pcdet.utils import common_utils
+
 import opv2v
 
 # Inherits from OPenPCDet dataset class which allows prepoccessing
@@ -61,10 +64,47 @@ class OPV2VDataset(DatasetTemplate):
         return data_dict
 
 
+# This class loads the specific model from a checkpoint, make sure the config file for the dataset is the same as this model because it uses that to load
+class ModelToTest():
+    def __init__(self, path_to_checkpoint, dataset):
+        self.dataset = dataset
+
+        if cfg != None:
+            logger = common_utils.create_logger()
+
+            self.model = build_network(
+                model_cfg=cfg.MODEL,
+                num_class=len(cfg.CLASS_NAMES),
+                dataset=dataset,
+            )
+
+            self.model.load_params_from_file(
+                filename=path_to_checkpoint,
+                logger=logger,
+                to_cpu=True,
+            )
+
+            self.model.cuda()
+            self.model.eval()
+        else:
+            print("ERROR: No config file set (create dataloader first)")
+
+    def eval_frame(self, data_dict):
+        with torch.no_grad():
+            batch_dict = self.dataset.collate_batch([data_dict]) # This wraps an extra dimension around the frame to make it a batch
+            load_data_to_gpu(batch_dict)
+
+            pred_dicts, ret_dict = self.model.forward(batch_dict) # Runs the batch through the model
+            return pred_dicts, ret_dict
+
 def main():
     dataset = OPV2VDataset("centerpoint_custom_opv2v.yaml")
-    test_frame = dataset.__getitem__(5)
-    print(test_frame)
+    model = ModelToTest()
+
+    print("frame_id:", data_dict["frame_id"])
+    print("pred boxes:", pred_dicts[0]["pred_boxes"].shape)
+    print("pred scores:", pred_dicts[0]["pred_scores"].shape)
+    print("pred labels:", pred_dicts[0]["pred_labels"].shape)
 
 if __name__ == "__main__":
     main()
