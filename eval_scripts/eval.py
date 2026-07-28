@@ -10,13 +10,13 @@ import opv2v
 # The dataset config has info on preporccossing, I have one for pillars and one for voxels, use accordingly
 class OPV2VDataset(DatasetTemplate):
     # This dict maps the class names from the opv2v dataset to the class names OpenPCDet expects
-    NAME_MAP = {"vehicle": "Car", "pedestrian": "Pedestrian", "truck": "Truck",}
+    NAME_MAP = {"vehicle":"Vehicle", "pedestrian":"Pedestrian", "truck":"Vehicle"}
 
-    def __init__(self, dataset_cfg, class_names=["Car", "Pedestrian", "Truck"], training=False, root_path="v2x_real_lidar64_val/val/", logger=None):
-        cfg_from_yaml_file(dataset_cfg, cfg) # Converts the cfg path to a cfg object
+    def __init__(self, model_cfg, class_names=["Car", "Pedestrian", "Truck"], training=False, root_path="v2x_real_lidar64_val/val/", logger=None):
+        cfg_from_yaml_file(model_cfg, cfg) # Converts the cfg path to a cfg object
 
         # Initializes the OpenPCDet with the given dataset config
-        super().__init__(dataset_cfg=cfg, class_names=["Car", "Pedestrian", "Truck"], training=training, root_path=Path(root_path), logger=logger,)
+        super().__init__(dataset_cfg=cfg.DATA_CONFIG, class_names=cfg.CLASS_NAMES, training=training, root_path=Path(cfg.DATA_CONFIG.DATA_PATH), logger=logger)
 
         self.root_path = Path(root_path)
         self.frame_paths = self.find_frames()
@@ -62,7 +62,7 @@ class OPV2VDataset(DatasetTemplate):
 
 
 def main():
-    dataset = OPV2VDataset("opv2v_pillars_cfg.yaml")
+    dataset = OPV2VDataset("centerpoint_custom.yaml")
     test_frame = dataset.__getitem__(5)
     print(test_frame)
 
