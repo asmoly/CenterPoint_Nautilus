@@ -10,11 +10,12 @@ from pathlib import Path
 
 import numpy as np
 from torch.utils.data import Dataset
+from pcdet.datasets.dataset import DatasetTemplate
 
 import opv2v
 
 # This dataset loads 
-class OPV2VDataset(Dataset):
+class OPV2VDataset(DatasetTemplate):
     def __init__(self, dataset_root):
         self.dataset_root = Path(dataset_root)
         self.frame_paths = OPV2VDataset.find_frames(self.dataset_root)
@@ -40,22 +41,26 @@ class OPV2VDataset(Dataset):
         """Gets a single frame and returns its frame id, the point cloud as a numpy array (N, 4), labels as a numpy array (M, 7), and list of classes corresponding to bounding boxes"""
         frame = opv2v.load_frame(str(self.frame_paths[index]))
 
-        return {
+        input_dict = {
             "frame_id": frame["frame_id"],
             "points": frame["points"].astype(np.float32),
             "gt_boxes": frame["boxes"].astype(np.float32),
             "gt_names": np.array(frame["classes"]),
         }
 
+        data_dict = self.prepare_data(data_dict=input_dict) # This converts the data to the OpenPCDet format
+        return data_dict
+
 
 def main():
     dataset = OPV2VDataset("v2x_real_lidar64_val/val")
 
     test_frame = dataset.__getitem__(5)
-    print(test_frame["frame_id"])
-    print(test_frame["points"].shape)
-    print(test_frame["gt_boxes"].shape)
-    print(test_frame["gt_names"].shape)
+    print(test_frame)
+    # print(test_frame["frame_id"])
+    # print(test_frame["points"].shape)
+    # print(test_frame["gt_boxes"].shape)
+    # print(test_frame["gt_names"].shape)
 
 if __name__ == "__main__":
     main()
