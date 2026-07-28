@@ -51,8 +51,8 @@ class OPV2VDataset(DatasetTemplate):
         input_dict = {
             "frame_id": frame["frame_id"],
             "points": frame["points"].astype(np.float32),
-            "gt_boxes": gt_names.astype(np.float32),
-            "gt_names": np.array(frame["classes"]),
+            "gt_boxes": frame["boxes"].astype(np.float32),
+            "gt_names": gt_names,
         }
 
         # Converts to OpenPCDet format
