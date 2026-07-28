@@ -99,9 +99,11 @@ class ModelToTest():
 
 def main():
     dataset = OPV2VDataset("centerpoint_custom_opv2v.yaml")
-    model = ModelToTest()
+    model = ModelToTest("checkpoint_epoch_1.pth", dataset)
 
-    print("frame_id:", data_dict["frame_id"])
+    pred_dicts, ret_dict = model.eval_frame(dataset[5])
+
+    print("frame_id:", dataset[5]["frame_id"])
     print("pred boxes:", pred_dicts[0]["pred_boxes"].shape)
     print("pred scores:", pred_dicts[0]["pred_scores"].shape)
     print("pred labels:", pred_dicts[0]["pred_labels"].shape)
