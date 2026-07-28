@@ -35,3 +35,5 @@ cd ..
 
 pip uninstall -y spconv spconv-cu116 cumm cumm-cu116
 pip install cumm-cu116==0.4.11 spconv-cu116==2.3.6
+
+pip install numpy==1.23.5
