@@ -62,3 +62,6 @@ def main():
     dataset = OPV2VDataset("opv2v_pillars_confg.yaml")
     test_frame = dataset.__getitem__(5)
     print(test_frame)
+
+if __name__ == "__main__":
+    main()
