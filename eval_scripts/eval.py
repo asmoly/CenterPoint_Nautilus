@@ -136,6 +136,17 @@ def match_predictions_to_gt(pred_boxes, pred_scores, gt_boxes, iou_thresh):
     if len(pred_boxes) == 0 or len(gt_boxes) == 0:
         return matched_gt_indices # If there are no bounding boxes then the set is empty
 
+    # Makes sure the tensors are pytorch tensors
+    if not torch.is_tensor(gt_boxes):
+        gt_boxes = torch.from_numpy(gt_boxes).float()
+    if not gt_boxes.is_cuda:
+        gt_boxes = gt_boxes.cuda()
+    if not pred_boxes.is_cuda:
+        pred_boxes = pred_boxes.cuda()
+
+    pred_boxes = pred_boxes.float()
+    gt_boxes = gt_boxes.float()
+
     order = torch.argsort(pred_scores, descending=True) # Returns a list of sorted indicies of scores
     # This function returns a matrix of overlap scores using intersection over union
     ious = iou3d_nms_utils.boxes_iou3d_gpu(pred_boxes[:, :7], gt_boxes[:, :7]) # Only takes first 7 values, not class id at the end
