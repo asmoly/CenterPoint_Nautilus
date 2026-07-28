@@ -12,13 +12,13 @@ class OPV2VDataset(DatasetTemplate):
     # This dict maps the class names from the opv2v dataset to the class names OpenPCDet expects
     NAME_MAP = {"vehicle":"Vehicle", "pedestrian":"Pedestrian", "truck":"Vehicle"}
 
-    def __init__(self, model_cfg, class_names=["Car", "Pedestrian", "Truck"], training=False, root_path="v2x_real_lidar64_val/val/", logger=None):
+    def __init__(self, model_cfg, class_names=["Car", "Pedestrian", "Truck"], training=False, logger=None):
         cfg_from_yaml_file(model_cfg, cfg) # Converts the cfg path to a cfg object
 
         # Initializes the OpenPCDet with the given dataset config
         super().__init__(dataset_cfg=cfg.DATA_CONFIG, class_names=cfg.CLASS_NAMES, training=training, root_path=Path(cfg.DATA_CONFIG.DATA_PATH), logger=logger)
 
-        self.root_path = Path(root_path)
+        self.root_path = Path(cfg.DATA_CONFIG.DATA_PATH)
         self.frame_paths = self.find_frames()
 
     def find_frames(self):
