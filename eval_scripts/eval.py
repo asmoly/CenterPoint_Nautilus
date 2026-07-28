@@ -1,35 +1,32 @@
-#!/usr/bin/env python3
-"""
-Simple PyTorch Dataset for OPV2V / V2X-Real frames.
-
-This uses your existing opv2v.py file to load each frame.
-It does not convert files, and it does not depend on OpenPCDet internals.
-"""
-
 from pathlib import Path
 
 import numpy as np
-from torch.utils.data import Dataset
-from pcdet.datasets.dataset import DatasetTemplate
 
+from pcdet.datasets.dataset import DatasetTemplate
 import opv2v
 
-# This dataset loads 
+# Inherits from OPenPCDet dataset class which allows prepoccessing
+# The dataset config has info on preporccossing, I have one for pillars and one for voxels, use accordingly
 class OPV2VDataset(DatasetTemplate):
-    def __init__(self, dataset_root):
-        self.dataset_root = Path(dataset_root)
-        self.frame_paths = OPV2VDataset.find_frames(self.dataset_root)
+    # This dict maps the class names from the opv2v dataset to the class names OpenPCDet expects
+    NAME_MAP = {"vehicle": "Car", "pedestrian": "Pedestrian", "truck": "Truck",}
 
-    @staticmethod
-    def find_frames(path_to_dataset_root):
-        """Returns a list of all frames in the dataset, represented by their .bin files"""
+    def __init__(self, dataset_cfg, class_names=["Car", "Pedestrian", "Truck"], training=False, root_path=None, logger=None):
+        # Initializes the OpenPCDet with the given dataset config
+        super().__init__(dataset_cfg=dataset_cfg, class_names=class_names, training=training, root_path=root_path, logger=logger,)
+
+        self.root_path = Path(root_path)
+        self.frame_paths = self.find_frames()
+
+    def find_frames(self):
+        """Returns a list of all frames in the dataset represented by the paths to the frames .bin file"""
         frame_paths = []
 
-        # Loops through all .bin files which contain points clouds
-        for bin_path in sorted(path_to_dataset_root.glob("*/*/*.bin")):
-            yaml_path = bin_path.with_suffix(".yaml") # Gets path to file with same name but .yaml extension for the labels
+        # Loops through all .bin files
+        for bin_path in sorted(self.root_path.glob("*/*/*.bin")):
+            yaml_path = bin_path.with_suffix(".yaml") # Finds corresponding .yaml file
             if yaml_path.exists():
-                frame_paths.append(bin_path) # If it exists then we add the bin path
+                frame_paths.append(bin_path) # If it exists it gets added to the list
 
         return frame_paths
 
@@ -38,29 +35,30 @@ class OPV2VDataset(DatasetTemplate):
         return len(self.frame_paths)
 
     def __getitem__(self, index):
-        """Gets a single frame and returns its frame id, the point cloud as a numpy array (N, 4), labels as a numpy array (M, 7), and list of classes corresponding to bounding boxes"""
-        frame = opv2v.load_frame(str(self.frame_paths[index]))
+        """Gets an item and returns its id, points, labels, and class names preporccessed for OpenPCDet"""
+        frame = opv2v.load_frame(str(self.frame_paths[index])) # Gets the frame from opv2v
 
+        # Converts all class names from opv2v format to OpenPCDet format
+        gt_names = np.array([OPV2VDataset.NAME_MAP[name] for name in frame["classes"]])
+
+        # Converts it to a dictionary
+        # points are a numpy array (# of points, 4)
+        # gt_boxes are a numpy array (# of boxes, 7)
+        # gt_names is a numpy array of all the class names corresponding to the gt_boxes
         input_dict = {
             "frame_id": frame["frame_id"],
             "points": frame["points"].astype(np.float32),
-            "gt_boxes": frame["boxes"].astype(np.float32),
+            "gt_boxes": gt_names.astype(np.float32),
             "gt_names": np.array(frame["classes"]),
         }
 
-        data_dict = self.prepare_data(data_dict=input_dict) # This converts the data to the OpenPCDet format
+        # Converts to OpenPCDet format
+        data_dict = self.prepare_data(data_dict=input_dict)
+
         return data_dict
 
 
 def main():
-    dataset = OPV2VDataset("v2x_real_lidar64_val/val")
-
+    dataset = OPV2VDataset("opv2v_pillars_confg.yaml")
     test_frame = dataset.__getitem__(5)
     print(test_frame)
-    # print(test_frame["frame_id"])
-    # print(test_frame["points"].shape)
-    # print(test_frame["gt_boxes"].shape)
-    # print(test_frame["gt_names"].shape)
-
-if __name__ == "__main__":
-    main()
