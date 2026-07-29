@@ -102,7 +102,7 @@ class ModelToTest():
             load_data_to_gpu(batch_dict)
 
             pred_dicts, ret_dict = self.model.forward(batch_dict) # Runs the batch through the model
-            return pred_dicts, ret_dict # pred_dicts contains important info, ret_dict is extra bookkeeping my OpenPCDet
+            return pred_dicts, ret_dict, batch_dict # pred_dicts contains important info, ret_dict is extra bookkeeping my OpenPCDet, also returns batch_dict which contains gt info on gpu
 
 
 def load_bucket_csv(path):
@@ -297,12 +297,13 @@ def main():
         data_dict = dataset[frame_index] # Gets the current frame
         frame_id = data_dict["frame_id"] # Gets the frame id from the frame
 
-        pred_dicts, _ = model.eval_frame(data_dict)
+        pred_dicts, _, batch_dict = model.eval_frame(data_dict)
         pred = pred_dicts[0] # Removes batch dimension
-        pred_names = prediction_names_from_labels(pred, cfg.CLASS_NAMES)
+        pred_names = prediction_names_from_labels(pred["pred_labels"], cfg.CLASS_NAMES)
 
         gt_boxes = data_dict["gt_boxes"] # Gets the ground truth boxes from the original frame
-        gt_names = gt_names_from_boxes(gt_boxes, cfg.CLASS_NAMES)
+        gt_boxes_with_labels = batch_dict["gt_boxes"][0] # Boxes but with class id as well and already loaded onto gpu
+        gt_names = gt_names_from_boxes(gt_boxes_with_labels, cfg.CLASS_NAMES)
         # This checks that the box data only has dimensions info and not id's or anything extra
         if gt_boxes.shape[1] > 7:
             gt_boxes = gt_boxes[:, :7]
