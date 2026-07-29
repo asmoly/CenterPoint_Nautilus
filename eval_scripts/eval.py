@@ -16,7 +16,6 @@ MAX_FRAMES = None
 IOU_THRESH = 0.5
 EVAL_OUTPUT_PATH = "eval_out.csv"
 
-
 # Inherits from OPenPCDet dataset class which allows prepoccessing
 # The dataset config has info on preporccossing, I have one for pillars and one for voxels, use accordingly
 class OPV2VDataset(DatasetTemplate):
@@ -132,6 +131,7 @@ def load_bucket_csv(path):
 def match_predictions_to_gt(pred_boxes, pred_scores, gt_boxes, iou_thresh):
     """This function returns a set of all the ground truth bounding boxes that had a good enough match in the predicted bounding boxes"""
     matched_gt_indices = set()
+    matched_pairs = []
 
     if len(pred_boxes) == 0 or len(gt_boxes) == 0:
         return matched_gt_indices # If there are no bounding boxes then the set is empty
@@ -171,33 +171,113 @@ def match_predictions_to_gt(pred_boxes, pred_scores, gt_boxes, iou_thresh):
         # Checks that the overlap is good enough to be considered a match based on our set threshhold
         if best_gt_index is not None and best_iou >= iou_thresh:
             matched_gt_indices.add(best_gt_index)
+            matched_pairs.append((best_gt_index, int(pred_index.item())))
 
-    return matched_gt_indices # Returns a set of all the indicis of ground truth indices that have a predicted match
+    return matched_pairs # Returns a list of tuples with matching pred ind and gt indices for matched boxes
 
 
-def write_results(path, bucket_stats):
+def make_bucket_confusion_matrix(gt_names, pred_names, matched_pairs, gt_buckets):
+    """
+    Returns: confusion[bucket][true_class][predicted_class] = count
+    Creates a confusion matrix for one frame
+    """
+    confusion = defaultdict(lambda: defaultdict(lambda: defaultdict(int))) # Creates a nested dict, with a dict inside, then ints
+
+    # Maps groun truth index to pred index
+    gt_to_pred = {}
+    for gt_index, pred_index in matched_pairs:
+        gt_to_pred[gt_index] = pred_index
+
+    # Loops through the classes of the bounding boxes with corresponding indices
+    for gt_index, true_class in enumerate(gt_names):
+        bucket_name = gt_buckets.get(gt_index) # Gets the bucket of the bounding box from the dict
+        if bucket_name is None:
+            continue
+
+        pred_index = gt_to_pred.get(gt_index) # Gets the corresponding predicted index
+        # If the gt box has a predicted match then we get the class of it, otherwise we use __missed__
+        if pred_index is None: # This means that this groung truth box doesn't have a match, meaning the model didn't even predict there was an object there
+            predicted_class = "__missed__"
+        else:
+            predicted_class = pred_names[pred_index]
+
+        # Then we increment that element in the confusion matrix
+        confusion[bucket_name][true_class][predicted_class] += 1
+
+    return confusion
+
+def merge_confusion(total_confusion, frame_confusion):
+    """Merges one confusion matrix for a frame into the total confusion matrix"""
+    for bucket_name, true_rows in frame_confusion.items(): # Loops through the buckets, bucket_name is the the key, true rows is the element corresponding to that key
+        for true_class, pred_cols in true_rows.items(): # Loops through the ground truth class
+            for predicted_class, count in pred_cols.items(): # Loops through the predicted class
+                total_confusion[bucket_name][true_class][predicted_class] += count # Increment that element in the total confusion matrix
+
+def stats_from_confusion(confusion):
+    """Converts the bucket confusion matrix stats split by buckets"""
     rows = []
 
-    for bucket_name in sorted(bucket_stats):
-        total = bucket_stats[bucket_name]["total"]
-        detected = bucket_stats[bucket_name]["detected"]
-        recall = detected/total if total > 0 else 0.0
+    for bucket_name in sorted(confusion): # Loops through alphabetically sorted bucket keys
+        total_gt = 0
+        correct = 0
+        missed = 0
+        wrong_class = 0
+
+        for true_class, pred_counts in confusion[bucket_name].items(): # Loops through rows (there should only be one per bucket)
+            total_gt += sum(pred_counts.values()) # Gets sum of all counts in the row
+            correct += pred_counts.get(true_class, 0) # Adds all the correctly detected and classified values
+            missed += pred_counts.get("__missed__", 0) # Adds boxes that weren't even detected
+
+            for predicted_class, count in pred_counts.items(): # Loops through columns
+                if predicted_class not in (true_class, "__missed__"):
+                    wrong_class += count # This adds the count if it isnt the correct class, getting wrong class predictions
+
+        detected = total_gt - missed # How many were detected (not nessessarily correct class)
+
+        # Recals for correct class and detected, and just detected
+        recall = correct/total_gt if total_gt > 0 else 0.0
+        detection_recall = detected/total_gt if total_gt > 0 else 0.0
+
+        classification_accuracy = correct/detected if detected > 0 else 0.0
 
         rows.append({
             "bucket": bucket_name,
-            "total_gt": total,
-            "detected": detected,
+            "total_gt": total_gt,
+            "correct": correct,
+            "missed": missed,
+            "wrong_class": wrong_class,
             "recall": f"{recall:.4f}",
+            "detection_recall": f"{detection_recall:.4f}",
+            "classification_accuracy_on_detected": f"{classification_accuracy:.4f}",
         })
 
-    with open(path, "w", newline="") as f:
-        writer = csv.DictWriter(
-            f,
-            fieldnames=["bucket", "total_gt", "detected", "recall"],
-        )
-        writer.writeheader()
-        writer.writerows(rows)
-    
+        print(f"{bucket_name}:    got: {correct}/{total_gt}    missed: {missed}    wrong class: {wrong_class}    correct recall: {recall}    detection recall: {detection_recall}    classification accuracy: {classification_accuracy}")
+
+    return rows
+
+def prediction_names_from_labels(pred_labels, class_names):
+    """Returns a list of the predicted class names corresponding to the predicted boxes"""
+    pred_names = []
+
+    for label in pred_labels:
+        pred_names.append(class_names[int(label.item()) - 1])
+
+    return pred_names
+
+
+def gt_names_from_boxes(gt_boxes, class_names):
+    """Returns a list of the grount truth class name scorresponding to the predicted boxes"""
+    gt_names = []
+
+    # This is just a double check
+    if gt_boxes.shape[1] <= 7: # If it doesn't contain data besides the dimensions than there are no classes
+        return gt_names
+
+    class_ids = gt_boxes[:, 7].long() # Gets the last element after the dimensions which contains the class id
+    for class_id in class_ids:
+        gt_names.append(class_names[int(class_id.item()) - 1]) # Gets the corresponding class name and adds it to the list
+
+    return gt_names
 
 def main():
     dataset = OPV2VDataset("centerpoint_custom_opv2v.yaml")
@@ -211,41 +291,32 @@ def main():
     if MAX_FRAMES is not None:
         num_frames = min(num_frames, MAX_FRAMES)
 
+    total_confusion = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
+
     for frame_index in range(num_frames):
         data_dict = dataset[frame_index] # Gets the current frame
         frame_id = data_dict["frame_id"] # Gets the frame id from the frame
 
         pred_dicts, _ = model.eval_frame(data_dict)
         pred = pred_dicts[0] # Removes batch dimension
+        pred_names = prediction_names_from_labels(pred, cfg.CLASS_NAMES)
 
         gt_boxes = data_dict["gt_boxes"] # Gets the ground truth boxes from the original frame
+        gt_names = gt_names_from_boxes(gt_boxes, cfg.CLASS_NAMES)
         # This checks that the box data only has dimensions info and not id's or anything extra
         if gt_boxes.shape[1] > 7:
             gt_boxes = gt_boxes[:, :7]
 
-        # Returns a list of the indices of ground truth boxes with predicted matches
-        matched_gt_indices = match_predictions_to_gt(pred_boxes=pred["pred_boxes"], pred_scores=pred["pred_scores"], gt_boxes=gt_boxes, iou_thresh=IOU_THRESH)
+        # Returns a list of pairs the indices of ground truth boxes with predicted matches
+        matched_pairs = match_predictions_to_gt(pred_boxes=pred["pred_boxes"], pred_scores=pred["pred_scores"], gt_boxes=gt_boxes, iou_thresh=IOU_THRESH)
 
         frame_buckets = bucket_lookup.get(frame_id, {}) # Gets the the buckets for all the boxes in a specific frame ({} is default fallback value)
 
-        # Loops through all ground truth bounding boxes
-        for gt_index in range(len(gt_boxes)):
-            bucket_name = frame_buckets.get(gt_index) # Gets bucket for the specific bounding box
-            if bucket_name is None:
-                continue
+        confusion = make_bucket_confusion_matrix(gt_names, pred_names, matched_pairs, frame_buckets)
+        merge_confusion(total_confusion, confusion)
 
-            bucket_stats[bucket_name]["total"] += 1 # Increases the total (no matter if there is a match)
-
-            # If there is a match increase the detected count
-            if gt_index in matched_gt_indices:
-                bucket_stats[bucket_name]["detected"] += 1
-
-        # 
-        if frame_index % 25 == 0:
-            print(f"Evaluated {frame_index}/{num_frames} frames")
-
-    write_results(EVAL_OUTPUT_PATH, bucket_stats)
-    print(f"Wrote bucket recall to {EVAL_OUTPUT_PATH}")
+    stats_from_confusion(total_confusion)
+        
 
     
 
