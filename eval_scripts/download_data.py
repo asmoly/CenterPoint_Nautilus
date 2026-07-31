@@ -1,6 +1,15 @@
 """
 This script downloads the v2x validation data, specifically the v2x_real_lidar64_val data
 It downloads it from this site: https://mobility-lab.seas.ucla.edu/v2x-real/
+
+How to use:
+You can specify which dataset you want to download using the arguents test, val, and train
+
+python download_data.py test
+python download_data.py val
+python download_data.py train
+
+All datasets will be downloaded to the outdir folder "v2x_real_lidar64"
 """
 
 import zipfile
