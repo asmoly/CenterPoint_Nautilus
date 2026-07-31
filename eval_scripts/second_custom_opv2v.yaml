@@ -4,7 +4,7 @@ DATA_CONFIG:
     DATASET: 'OPV2VDataset'
     DATA_PATH: 'v2x_real_lidar64/val'
 
-    POINT_CLOUD_RANGE: [0, -39.68, -3, 69.12, 39.68, 1]
+    POINT_CLOUD_RANGE: [-75.2, -75.2, -2, 75.2, 75.2, 4]
 
     POINT_FEATURE_ENCODING: {
         encoding_type: absolute_coordinates_encoding,
@@ -27,7 +27,7 @@ DATA_CONFIG:
           }
 
         - NAME: transform_points_to_voxels
-          VOXEL_SIZE: [0.16, 0.16, 0.1]
+          VOXEL_SIZE: [0.1, 0.1, 0.15]
           MAX_POINTS_PER_VOXEL: 32
           MAX_NUMBER_OF_VOXELS: {
             'train': 16000,
