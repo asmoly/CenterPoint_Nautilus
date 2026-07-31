@@ -311,7 +311,10 @@ def main():
 
     total_confusion = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
 
+    frame_count = 0
     for frame_index in range(num_frames):
+        frame_count += 1
+
         data_dict = dataset[frame_index] # Gets the current frame
         frame_id = data_dict["frame_id"] # Gets the frame id from the frame
 
@@ -333,6 +336,9 @@ def main():
 
         confusion = make_bucket_confusion_matrix(gt_names, pred_names, matched_pairs, frame_buckets)
         merge_confusion(total_confusion, confusion)
+
+        if frame_count % 25 == 0:
+            print(f"Analyzed {frame_count} frames")
 
     stats_from_confusion(total_confusion)
         
