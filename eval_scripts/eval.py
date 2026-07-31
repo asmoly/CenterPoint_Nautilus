@@ -3,6 +3,7 @@ from pathlib import Path
 import numpy as np
 import torch
 import csv
+import argparse
 from pcdet.datasets.dataset import DatasetTemplate
 from pcdet.config import cfg, cfg_from_yaml_file
 from pcdet.models import build_network, load_data_to_gpu
@@ -15,6 +16,18 @@ import opv2v
 MAX_FRAMES = None
 IOU_THRESH = 0.5
 EVAL_OUTPUT_PATH = "eval_out.csv"
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "config_path",
+        help="Which model config to use",
+    )
+    parser.add_argument(
+            "checkpoint_path",
+            help="Which model checkpoint to use",
+        )
+    return parser.parse_args()
 
 # Inherits from OPenPCDet dataset class which allows prepoccessing
 # The dataset config has info on preporccossing, I have one for pillars and one for voxels, use accordingly
@@ -280,8 +293,13 @@ def gt_names_from_boxes(gt_boxes, class_names):
     return gt_names
 
 def main():
-    dataset = OPV2VDataset("centerpoint_custom_opv2v.yaml")
-    model = ModelToTest("checkpoint_epoch_1.pth", dataset)
+    args = parse_args()
+    config_path = args.config_path
+    checkpoint_path = args.checkpoint_path
+
+
+    dataset = OPV2VDataset(config_path)
+    model = ModelToTest(checkpoint_path, dataset)
 
     bucket_lookup = load_bucket_csv("bucket_assignments.csv")
     bucket_stats = defaultdict(lambda: {"total": 0, "detected": 0}) # If accessed elemnt doesn't exist it creates the following empty dict
