@@ -2,7 +2,7 @@ CLASS_NAMES: ['Vehicle', 'Pedestrian', 'Cyclist']
 
 DATA_CONFIG:
     DATASET: 'OPV2VDataset'
-    DATA_PATH: 'v2x_real_lidar64/val'
+    DATA_PATH: '../data/v2x_real_lidar64/val'
 
     POINT_CLOUD_RANGE: [-40.0, -40.0, -8.0, 40.0, 40.0, 2.0]
 
