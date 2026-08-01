@@ -15,6 +15,7 @@ All datasets will be downloaded to the outdir folder "v2x_real_lidar64"
 import zipfile
 import requests
 import argparse
+import shutil
 from pathlib import Path
 
 def parse_args():
@@ -25,6 +26,37 @@ def parse_args():
         help="Which dataset to download",
     )
     return parser.parse_args()
+
+def merge_train_parts(dataset_root):
+    dataset_root = Path(dataset_root)
+    final_train = dataset_root / "train"
+    final_train.mkdir(parents=True, exist_ok=True) # Creates the path and directory for the folder we want everything to merge into
+
+    for i in range(1, 5): # There are 4 things we want to merge train1, train2, train3, train4
+        part_dir = dataset_root / f"train{i}" # Gets path to that part
+
+        # Checks that it exists
+        if not part_dir.exists():
+            print(f"Skipping missing {part_dir}")
+            continue
+
+        # Loops through all scenarios within a folder, these are the folders with dates
+        for scenario_dir in part_dir.iterdir():
+            # Checks that all scenarios are directorys and not standalone files
+            if not scenario_dir.is_dir():
+                continue
+
+            target_dir = final_train / scenario_dir.name # Creates the path we want to copy the folder to
+
+            # Checks that it doesn't exist
+            if target_dir.exists():
+                print(f"Skipping existing {target_dir}")
+                continue
+
+            # Copies the directory
+            shutil.copytree(scenario_dir, target_dir)
+
+    print(f"Merged train parts into {final_train}")
 
 def download_data():
     args = parse_args()
@@ -63,5 +95,8 @@ def download_data():
         print(f"Extracted {zip_path} to {out_dir}")
 
     print("Finished downloading and extracting")
+
+    if args.dataset == "train":
+        merge_train_parts(out_dir)
 
 download_data()
