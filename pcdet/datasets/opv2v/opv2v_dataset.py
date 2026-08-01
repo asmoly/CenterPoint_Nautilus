@@ -12,13 +12,11 @@ class OPV2VDataset(DatasetTemplate):
     # This dict maps the class names from the opv2v dataset to the class names OpenPCDet expects
     NAME_MAP = {"vehicle":"Vehicle", "pedestrian":"Pedestrian", "truck":"Vehicle"}
 
-    def __init__(self, model_cfg, class_names=["Car", "Pedestrian", "Truck"], training=False, logger=None):
-        cfg_from_yaml_file(model_cfg, cfg) # Converts the cfg path to a cfg object
-
+    def __init__(self, dataset_cfg, class_names, training=True, root_path=None, logger=None):
         # Initializes the OpenPCDet with the given dataset config
-        super().__init__(dataset_cfg=cfg.DATA_CONFIG, class_names=cfg.CLASS_NAMES, training=training, root_path=Path(cfg.DATA_CONFIG.DATA_PATH), logger=logger)
+        super().__init__(dataset_cfg=dataset_cfg, class_names=class_names, training=training, root_path=root_path, logger=logger)
 
-        self.root_path = Path(cfg.DATA_CONFIG.DATA_PATH)
+        self.root_path = Path(root_path if root_path is not None else dataset_cfg.DATA_PATH)
         self.frame_paths = self.find_frames()
 
     def find_frames(self):
