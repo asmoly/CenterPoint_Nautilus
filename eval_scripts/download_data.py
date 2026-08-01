@@ -77,8 +77,8 @@ def download_data():
     out_dir = Path("v2x_real_lidar64")
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    for zip_path, url in urls_to_download:
-        zip_path = Path(zip_path)
+    for zip_name, url in urls_to_download:
+        zip_path = out_dir / zip_name
         with requests.get(url, stream=True, allow_redirects=True) as r:
             r.raise_for_status()
 
