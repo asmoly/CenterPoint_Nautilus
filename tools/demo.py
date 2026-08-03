@@ -23,6 +23,9 @@ import sys
 sys.path.append('../eval_scripts')
 import opv2v
 
+# run using python demo.py --ckpt ../eval_scripts/checkpoint_epoch_1.pth --cfg_file ../eval_scripts/centerpoint_demo_opv2v.yaml
+# make sure cfg file has correct path to data
+
 # Inherits from OPenPCDet dataset class which allows prepoccessing
 # The dataset config has info on preporccossing, I have one for pillars and one for voxels, use accordingly
 class OPV2VDataset(DatasetTemplate):
