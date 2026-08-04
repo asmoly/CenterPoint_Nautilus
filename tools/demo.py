@@ -23,8 +23,8 @@ import sys
 sys.path.append('../eval_scripts')
 import opv2v
 
-# run using python demo.py --ckpt ../eval_scripts/checkpoint_epoch_1.pth --cfg_file ../eval_scripts/centerpoint_demo_opv2v.yaml
-# make sure cfg file has correct path to data
+# Run using python3 demo.py --cfg_file cfgs/custom_models/centerpoint_custom.yaml --ckpt ../eval_scripts/checkpoint_epoch_1.pth --data_path ../data/v2x_real_lidar64/val/2023-03-17-16-03-02_11_1/2/000003.bin
+# from the tools/ drirectory (make sure val data is downloaded in the data /v2x... folder)
 
 # Inherits from OPenPCDet dataset class which allows prepoccessing
 # The dataset config has info on preporccossing, I have one for pillars and one for voxels, use accordingly

@@ -35,17 +35,26 @@ class OPV2VDataset(DatasetTemplate):
     # This dict maps the class names from the opv2v dataset to the class names OpenPCDet expects
     NAME_MAP = {"vehicle":"Vehicle", "pedestrian":"Pedestrian", "truck":"Vehicle"}
 
-    def __init__(self, model_cfg, class_names=["Car", "Pedestrian", "Truck"], training=False, logger=None):
+    def __init__(self, model_cfg, class_names=["Car", "Pedestrian", "Truck"], training=False, logger=None, root_path=None):
         cfg_from_yaml_file(model_cfg, cfg) # Converts the cfg path to a cfg object
 
-        # Initializes the OpenPCDet with the given dataset config
-        super().__init__(dataset_cfg=cfg.DATA_CONFIG, class_names=cfg.CLASS_NAMES, training=training, root_path=Path(cfg.DATA_CONFIG.DATA_PATH), logger=logger)
+        # If a root path isn't specified it just takes it from the data config
+        if root_path == None:
+            self.root_path = Path(cfg.DATA_CONFIG.DATA_PATH)
+        else:
+            self.root_path = Path(root_path)
 
-        self.root_path = Path(cfg.DATA_CONFIG.DATA_PATH)
         self.frame_paths = self.find_frames()
+
+        # Initializes the OpenPCDet with the given dataset config
+        super().__init__(dataset_cfg=cfg.DATA_CONFIG, class_names=cfg.CLASS_NAMES, training=training, root_path=self.root_path, logger=logger)
 
     def find_frames(self):
         """Returns a list of all frames in the dataset represented by the paths to the frames .bin file"""
+        # If the root path is just a single file for testing, then that is the only file in the dataset
+        if self.root_path.is_file():
+            return [self.root_path]
+
         frame_paths = []
 
         # Loops through all .bin files
