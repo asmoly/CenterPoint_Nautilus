@@ -39,12 +39,12 @@ class OPV2VDataset(DatasetTemplate):
         if root_path == None:
             self.root_path = Path(cfg.DATA_CONFIG.DATA_PATH)
         else:
-            self.root_path = root_path
+            self.root_path = Path(root_path)
 
         self.frame_paths = self.find_frames()
 
         # Initializes the OpenPCDet with the given dataset config
-        super().__init__(dataset_cfg=cfg.DATA_CONFIG, class_names=cfg.CLASS_NAMES, training=training, root_path=Path(cfg.DATA_CONFIG.DATA_PATH), logger=logger)
+        super().__init__(dataset_cfg=cfg.DATA_CONFIG, class_names=cfg.CLASS_NAMES, training=training, root_path=self.root_path, logger=logger)
 
     def find_frames(self):
         """Returns a list of all frames in the dataset represented by the paths to the frames .bin file"""
