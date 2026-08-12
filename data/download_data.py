@@ -74,7 +74,7 @@ def download_data():
         urls_to_download.append(("train3.zip", "https://ucla.app.box.com/shared/static/d1fuuvx4hisfxkxi1h0gipxfn7tpaony"))
         urls_to_download.append(("train4.zip", "https://ucla.app.box.com/shared/static/tre8f2n816n4dfqodp74cnqfz7on5qw2"))
 
-    out_dir = Path("v2x_real_lidar64/train/")
+    out_dir = Path(f"v2x_real_lidar64/{args.dataset}/")
     out_dir.mkdir(parents=True, exist_ok=True)
 
     for zip_name, url in urls_to_download:
