@@ -1,12 +1,13 @@
 from typing import Set
 
-import spconv
-if float(spconv.__version__[2:]) >= 2.2:
-    spconv.constants.SPCONV_USE_DIRECT_TABLE = False
-    
+import spconv as spconv_core
+
+if float(spconv_core.__version__[2:]) >= 2.2:
+    spconv_core.constants.SPCONV_USE_DIRECT_TABLE = False
+
 try:
     import spconv.pytorch as spconv
-except:
+except ImportError:
     import spconv as spconv
 
 import torch.nn as nn
