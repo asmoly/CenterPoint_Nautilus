@@ -45,3 +45,9 @@ pip install numpy==1.23.5
 python -c "import numpy; print(numpy.__version__)"
 python -c "import pcdet; print('pcdet ok')"
 python -c "import pcdet.ops.iou3d_nms.iou3d_nms_cuda as iou3d; print('iou3d ok')"
+
+pip uninstall -y spconv spconv-cu116 cumm cumm-cu116
+pip uninstall -y spconv spconv-cu116 cumm cumm-cu116
+
+pip install cumm-cu116==0.4.11
+pip install spconv-cu116==2.3.6
