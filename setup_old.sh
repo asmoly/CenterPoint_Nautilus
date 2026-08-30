@@ -1,7 +1,6 @@
 conda tos accept
-conda create -n centerpoint python=3.8 -y
 
-source ~/miniconda3/etc/profile.d/conda.sh
+conda create -n centerpoint python=3.8 -y
 conda activate centerpoint
 
 conda install -c conda-forge libxcrypt -y
@@ -15,14 +14,10 @@ export PATH=$CUDA_HOME/bin:$PATH
 export LD_LIBRARY_PATH=$CONDA_PREFIX/lib/python3.8/site-packages/torch/lib:$CUDA_HOME/lib:$CUDA_HOME/lib64:$LD_LIBRARY_PATH
 
 pip install --upgrade pip
-
 pip install torch==1.13.1+cu116 torchvision==0.14.1+cu116 \
   --extra-index-url https://download.pytorch.org/whl/cu116
 
-pip uninstall -y spconv spconv-cu116 cumm cumm-cu116
-pip install cumm-cu116==0.4.11 spconv-cu116==2.3.6
-
-pip install numpy==1.23.5
+pip install spconv-cu116
 pip install -r requirements.txt
 pip install open3d
 
@@ -34,14 +29,11 @@ python -c "import pcdet.ops.iou3d_nms.iou3d_nms_cuda as iou3d; print('iou3d ok')
 
 git clone https://github.com/DerrickXuNu/OpenCOOD.git
 cd OpenCOOD
-
 pip install -r requirements.txt
 python setup.py develop
-
 cd ..
 
-pip install numpy==1.23.5
+pip uninstall -y spconv spconv-cu116 cumm cumm-cu116
+pip install cumm-cu116==0.4.11 spconv-cu116==2.3.6
 
-python -c "import numpy; print(numpy.__version__)"
-python -c "import pcdet; print('pcdet ok')"
-python -c "import pcdet.ops.iou3d_nms.iou3d_nms_cuda as iou3d; print('iou3d ok')"
+pip install numpy==1.23.5
