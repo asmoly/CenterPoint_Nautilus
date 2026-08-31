@@ -26,7 +26,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--dataset-root",
-        default="v2x_real_lidar64_val/val/",
+        default="../data/v2x_real_lidar64_val/val/",
         help="Root to dataset, containing scenario/agent/*.bin files",
     )
     parser.add_argument(
