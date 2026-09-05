@@ -1,64 +1,44 @@
-# CenterPoint Implementation
+# LiDAR Object Detection Framework
+This is a python framework I created that allows you to train, test, and evaluate 3D detection models on custom datasets. This framework uses OpenPCDet as it's base. In this project I already have set up CenterPoint, SECOND, voxel-rcnn, and PointPillars as well as scripts to download the v2x dataset. Some important files to note are the configuration files for the models. These can be found in tools/cfgs/... these contain info on where your dataset is located, how to parse it, and how to augment the data, as well as the model settings. These are worth taking a look at.
 
-### How to setup CenterPoint
+I ran this on a server (Nautlius) so if running in WSL or on a linux machine you may need to install some more dependencies based on the error messages.
 
-First clone the repo (preferably to your persistent folder `git clone https://github.com/asmoly/CenterPoint_Nautilus.git`
+### How to setup
+1. Clone the Repo
+2. Run 'source install_conda.sh' from the root of the repo
+3. Restart your terminal
+4. Run 'source setup.sh' from the repo root
+5. Go to the data/ directory and run 'python download_data.py train' to download the v2x train dataset (you can also use parameters "val" or "test" to download different sets of the v2x data)
+6. You can also download the val data for future testing
 
-Then go into the repo root folder and run `source install_conda.sh` if you don’t already have conda installed. Make sure to restart your terminal after this.
-
-Next, from the repo root folder run `source setup.sh`, this will install all the necessary dependencies for OpenPCDet.
-
-Then run, `python scripts/make_test_data.py`, verify that the `custom_dataset`appeared in the `data/` directory. This python file is a helpful file to look at to understand the dataset format. This program generates the random dataset.  It creates random point clouds and then inserts object scatters into the point clouds.
-
-```
-# For future reference this is the format the the custom dataset should be
-
-data/custom/
-  ImageSets/
-    train.txt
-    val.txt
-  points/
-    000001.npy
-    000002.npy
-  labels/
-    000001.txt
-    000002.txt
-
-# The points files are 2D numpy arrays with each element being [x, y, z, intensity]
-# The labels are text files with each line being: x y z dx dy dz heading_angle class_name
-# The image sets are just text files with the ids of the point clouds you want for the train and val set
-
-# These are some other notable config files neccessary for the custom dataset
-tools\cfgs\dataset_configs\custom_dataset.yaml
-tools\cfgs\custom_models\centerpoint_custom.yaml
-```
-
-Run `python -m pcdet.datasets.custom.custom_dataset create_custom_infos tools/cfgs/dataset_configs/custom_dataset.yaml` from the repo root folder. This sets up the custom dataset for training.
-
-Then run this from the `tools/` directory
-
-```
+#### Training
+Training can be done in many ways, and can be configured via the config files you are referencing. This is a basic training command that can be expanded upon. From the tools/ directory run:
+'''
 python train.py \
-  --cfg_file cfgs/custom_models/centerpoint_custom.yaml \
-  --batch_size 1 \
-  --epochs 2 \
-  --workers 2
-```
+	--cfg_file cfgs/opv2v_models/centerpoint_custom_opv2v.yaml \
+	--batch_size 16 \
+	--epochs 100000 \
+	--workers 2 \
+'''
+This should launch the training, for however many epochs you run it for.
+Saved checkpoints should be stored in /output/custom_models/centerpoint_custom/default/ckpt/ or a path similar to this (depending on your model name)
 
-Here you can specify the training parameters.
-
-Checkpoints should be stored here: `CenterPoint_Nautilus/output/custom_models/centerpoint_custom/default/ckpt/`
-
-You can test a checkpoint using:
-
-```
-python [demo.py](http://demo.py/) \
+#### Testing
+To run a test of your trained model on a specific LiDAR point cloud from the dataset and get a visualization run this command from the tools/ directory:
+'''
+python3 demo.py \
 	--cfg_file cfgs/custom_models/centerpoint_custom.yaml \
-	--ckpt ../output/custom_models/centerpoint_custom/default/ckpt/checkpoint_epoch_2.pth \
-	--data_path ../data/custom/points/001000.npy \
-	--ext .npy
-```
+	--ckpt ../output/opv2v_models/centerpoint_custom_opv2v/default/ckpt/latest_model.pth \
+	--data_path ../data/v2x_real_lidar64/val/2023-03-17-16-03-02_11_1/2/000003.bin \
+'''
+Make sure you are referencing the correct config file and checkpoint. The data path can be the path to a specific frame from your dataset.
 
-You should see something like this pop up (This was a mostly untrained model so the output is pretty random but the trained models look much better):
+#### Evaluating
+First, from the eval_scripts/ directory run 'python create_buckets.py' this will categorize objects in the dataset into buckets based on the object type, density of it's point cloud, and proximity to the LiDAR.
+Then run:
+'''
+python3 eval.py centerpoint_custom_opv2v.yaml ../output/opv2v_models/centerpoint_custom_opv2v/default/ckpt/latest_model.pth
+'''
+The first parameter is the config file you are referencing, and the second parameter is the checkpoint you are evaluating. If this runs successfully it will give you a break down of the statistics of the models accuracy and precision.
 
-![image.png](image.png)
+Reference my YouTube video for more detailed instructions: https://www.youtube.com/watch?v=tbxvvmdVJoM
